@@ -3,18 +3,20 @@ package services
 import (
 	"fmt"
 
-	"github.com/verbeux-ai/verbeux-admin/constants"
-	"github.com/verbeux-ai/verbeux-admin/utils"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
+
 	"gorm.io/gorm"
+
+	"github.com/IIGabriel/eth-tx-manager/constants"
+	"github.com/IIGabriel/eth-tx-manager/utils"
 )
 
 var postgresInstance *gorm.DB
 
 func Postgres() *gorm.DB {
 	if postgresInstance == nil {
-		connectionURL := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+		dns := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 			utils.EnvString(constants.PostgresHost),
 			utils.EnvString(constants.PostgresUser),
 			utils.EnvString(constants.PostgresPass),
@@ -22,7 +24,7 @@ func Postgres() *gorm.DB {
 			utils.EnvInt(constants.PostgresPort),
 		)
 
-		db, err := gorm.Open(postgres.Open(connectionURL))
+		db, err := gorm.Open(postgres.Open(dns))
 		if err != nil {
 			zap.L().Panic("failed to connect to postgres", zap.Error(err))
 		}
@@ -32,7 +34,7 @@ func Postgres() *gorm.DB {
 			zap.L().Panic("failed to get DB", zap.Error(err))
 		}
 
-		if err := d.Ping(); err != nil {
+		if err = d.Ping(); err != nil {
 			zap.L().Panic("failed to ping DB", zap.Error(err))
 		}
 
