@@ -6,6 +6,7 @@ import (
 
 type Controller interface {
 	GetOne(ctx *fiber.Ctx) error
+	GetMany(ctx *fiber.Ctx) error
 	Create(ctx *fiber.Ctx) error
 	Update(ctx *fiber.Ctx) error
 	Delete(ctx *fiber.Ctx) error

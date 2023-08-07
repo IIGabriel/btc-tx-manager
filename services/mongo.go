@@ -35,7 +35,7 @@ func Mongo() *mongo.Database {
 
 		ctx, c = context.WithTimeout(context.Background(), constants.MongoTimeout)
 		defer c()
-		if err := client.Ping(ctx, nil); err != nil {
+		if err = client.Ping(ctx, nil); err != nil {
 			zap.L().Fatal("failed to ping mongo", zap.Error(err))
 		}
 		mongoInstance = client.Database(utils.EnvString(constants.MongoDataBaseKey))
@@ -48,7 +48,7 @@ func SetupMongo() {
 	db := Mongo()
 
 	if _, err := db.Collection(constants.CollectionTransactions).Indexes().CreateOne(context.Background(), mongo.IndexModel{
-		Keys:    bson.D{{Key: "hash", Value: 1}},
+		Keys:    bson.D{{Key: "transaction_hash", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}); err != nil {
 		zap.L().Fatal("failed to create hash index", zap.Error(err))

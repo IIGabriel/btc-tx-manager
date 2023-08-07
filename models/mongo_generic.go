@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -27,15 +28,17 @@ type MongoConn struct {
 	timeout time.Duration
 }
 
-func (m MongoObject[T]) Create(obj T) error {
+func (m MongoObject[T]) Create(obj T) (primitive.ObjectID, error) {
 	ctx, c := context.WithTimeout(context.Background(), m.timeout)
 	defer c()
 
-	if _, err := m.db.InsertOne(ctx, obj); err != nil {
-		return err
+	result, err := m.db.InsertOne(ctx, obj)
+	if err != nil {
+		return primitive.ObjectID{}, err
 	}
+	objectId, _ := result.InsertedID.(primitive.ObjectID)
 
-	return nil
+	return objectId, nil
 }
 func (m MongoObject[T]) Delete(filter bson.D) error {
 	ctx, c := context.WithTimeout(context.Background(), m.timeout)
@@ -50,16 +53,57 @@ func (m MongoObject[T]) Delete(filter bson.D) error {
 	}
 	return nil
 }
+
+func (m MongoObject[T]) Count(filter bson.D) (int64, error) {
+	ctx, c := context.WithTimeout(context.Background(), m.timeout)
+	defer c()
+
+	countDocuments, err := m.db.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return countDocuments, nil
+
+}
+
+func (m MongoObject[T]) Find(filter bson.D, mongoParams interfaces.MongoFilter) ([]T, error) {
+	ctx, c := context.WithTimeout(context.Background(), m.timeout)
+	defer c()
+
+	opts := options.Find()
+	opts.SetSkip(int64((mongoParams.Page - 1) * mongoParams.PerPage))
+	opts.SetLimit(int64(mongoParams.PerPage))
+	opts.SetProjection(mongoParams.Projection)
+
+	cursor, err := m.db.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []T
+	for cursor.Next(ctx) {
+		var result T
+		if err = cursor.Decode(&result); err != nil {
+			return nil, err
+		}
+
+		results = append(results, result)
+	}
+
+	return results, nil
+}
+
 func (m MongoObject[T]) FindOne(filter bson.D, projection ...bson.D) (*T, error) {
 	ctx, c := context.WithTimeout(context.Background(), m.timeout)
 	defer c()
 
-	var opt options.FindOneOptions
+	opt := options.FindOne()
 	if len(projection) > 0 {
-		opt.Projection = projection[0]
+		opt.SetProjection(projection[0])
 	}
 
-	result := m.db.FindOne(ctx, filter, &opt)
+	result := m.db.FindOne(ctx, filter, opt)
 	if err := result.Err(); err != nil {
 		return nil, err
 	}
@@ -70,4 +114,16 @@ func (m MongoObject[T]) FindOne(filter bson.D, projection ...bson.D) (*T, error)
 	}
 
 	return &obj, nil
+}
+
+func (m MongoObject[T]) Update(filters bson.D, update bson.D) error {
+	ctx, c := context.WithTimeout(context.Background(), m.timeout)
+	defer c()
+
+	_, err := m.db.UpdateOne(ctx, filters, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -11,7 +11,8 @@ func Transactions(app *fiber.App) {
 	group := app.Group(constants.RouteTransaction)
 	controller := controllers.NewTransaction()
 
-	group.Get(":hash", controller.GetOne)
+	group.Get(":hashId", controller.GetOne)
 	group.Post(":hash", controller.Create)
-	group.Delete(":hash", controller.Delete)
+	group.Delete(":hashId", controller.Delete)
+	group.Get("", controller.GetMany)
 }

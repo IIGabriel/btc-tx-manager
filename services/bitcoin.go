@@ -15,10 +15,31 @@ func GetTransactionByHash(hash string) (*models.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	var transaction models.Transaction
+	var transaction models.RawTransaction
 	if err := json.Unmarshal(body, &transaction); err != nil {
 		return nil, err
 	}
 
-	return &transaction, nil
+	tx := transaction.ConvertToTransaction()
+	lastBlockHeight, err := GetLastBlockHeight()
+	if err != nil {
+		return nil, err
+	}
+	tx.Confirmations = (*lastBlockHeight - *transaction.BlockHeight) + 1
+	return tx, nil
+}
+
+func GetLastBlockHeight() (*int64, error) {
+	body, err := utils.Get(fmt.Sprintf("%s/latestblock", constants.BlockChainURL))
+	if err != nil {
+		return nil, err
+	}
+	var height struct {
+		Height *int64 `json:"height"`
+	}
+	if err := json.Unmarshal(body, &height); err != nil {
+		return nil, err
+	}
+
+	return height.Height, nil
 }
