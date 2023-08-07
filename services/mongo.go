@@ -3,13 +3,14 @@ package services
 import (
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/mgocompat"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 
-	"github.com/IIGabriel/eth-tx-manager/constants"
-	"github.com/IIGabriel/eth-tx-manager/utils"
+	"github.com/IIGabriel/btc-tx-manager/constants"
+	"github.com/IIGabriel/btc-tx-manager/utils"
 )
 
 var mongoInstance *mongo.Database
@@ -27,7 +28,7 @@ func Mongo() *mongo.Database {
 		ctx, c := context.WithTimeout(context.Background(), constants.MongoTimeout)
 		defer c()
 
-		err = client.Connect(ctx)
+		err = client.Ping(ctx, nil)
 		if err != nil {
 			zap.L().Fatal("failed to connect to mongo", zap.Error(err))
 		}
@@ -41,4 +42,15 @@ func Mongo() *mongo.Database {
 	}
 
 	return mongoInstance
+}
+
+func SetupMongo() {
+	db := Mongo()
+
+	if _, err := db.Collection(constants.CollectionTransactions).Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys:    bson.D{{Key: "hash", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}); err != nil {
+		zap.L().Fatal("failed to create hash index", zap.Error(err))
+	}
 }

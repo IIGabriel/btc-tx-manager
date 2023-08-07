@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/IIGabriel/eth-tx-manager/constants"
+	"github.com/IIGabriel/btc-tx-manager/constants"
 )
 
 func createDirectoryIfNotExist() {

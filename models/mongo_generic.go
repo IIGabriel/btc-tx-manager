@@ -2,14 +2,15 @@ package models
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/IIGabriel/eth-tx-manager/constants"
-	"github.com/IIGabriel/eth-tx-manager/interfaces"
+	"github.com/IIGabriel/btc-tx-manager/constants"
+	"github.com/IIGabriel/btc-tx-manager/interfaces"
 )
 
 func NewMongoObject[T any](dirty T, collection *mongo.Collection) interfaces.RepositoryMongo[T] {
@@ -31,7 +32,7 @@ func (m MongoObject[T]) Create(obj T) error {
 	defer c()
 
 	if _, err := m.db.InsertOne(ctx, obj); err != nil {
-		return nil
+		return err
 	}
 
 	return nil
@@ -40,10 +41,13 @@ func (m MongoObject[T]) Delete(filter bson.D) error {
 	ctx, c := context.WithTimeout(context.Background(), m.timeout)
 	defer c()
 
-	if _, err := m.db.DeleteOne(ctx, filter); err != nil {
-		return nil
+	result, err := m.db.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
 	}
-
+	if result.DeletedCount == 0 {
+		return errors.New("no matching data")
+	}
 	return nil
 }
 func (m MongoObject[T]) FindOne(filter bson.D, projection ...bson.D) (*T, error) {

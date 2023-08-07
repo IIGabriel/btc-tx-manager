@@ -1,4 +1,4 @@
-module github.com/IIGabriel/eth-tx-manager
+module github.com/IIGabriel/btc-tx-manager
 
 go 1.20
 

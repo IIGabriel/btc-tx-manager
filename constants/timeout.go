@@ -6,5 +6,5 @@ import (
 
 const (
 	MongoTimeout = time.Second * 10
-	HTTPTimeout  = time.Second * 30
+	HTTPTimeout  = time.Second * 10
 )

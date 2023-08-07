@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
-	"github.com/IIGabriel/eth-tx-manager/constants"
+	"github.com/IIGabriel/btc-tx-manager/constants"
 )
 
 func init() {
@@ -17,8 +17,8 @@ func init() {
 var defaults = map[constants.EnvKey]interface{}{
 	constants.DebugMode:        true,
 	constants.Port:             "8080",
-	constants.MongoEnvKey:      "",
-	constants.MongoDataBaseKey: "",
+	constants.MongoEnvKey:      "mongodb://root:pass@localhost:27017",
+	constants.MongoDataBaseKey: "txManager",
 }
 
 func EnvBool(key constants.EnvKey) bool {
