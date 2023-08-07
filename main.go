@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/IIGabriel/eth-tx-manager/constants"
+	"github.com/IIGabriel/eth-tx-manager/server/routes"
 	"github.com/IIGabriel/eth-tx-manager/utils"
 )
 
@@ -15,7 +16,7 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New())
-	//routes.Load(app)
+	routes.Load(app)
 
 	port := ":" + utils.EnvString(constants.Port)
 	zap.L().Info("starting server...", zap.String("port", port))
