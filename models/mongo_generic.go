@@ -1,4 +1,4 @@
-package repository
+package models
 
 import (
 	"context"
@@ -10,11 +10,10 @@ import (
 
 	"github.com/IIGabriel/eth-tx-manager/constants"
 	"github.com/IIGabriel/eth-tx-manager/interfaces"
-	"github.com/IIGabriel/eth-tx-manager/services"
 )
 
-func NewMongoObject[T any](dirty T, collection string) interfaces.RepositoryMongo[T] {
-	return &MongoObject[T]{dirty: dirty, MongoConn: MongoConn{services.Mongo().Collection(collection), constants.MongoTimeout}}
+func NewMongoObject[T any](dirty T, collection *mongo.Collection) interfaces.RepositoryMongo[T] {
+	return &MongoObject[T]{dirty: dirty, MongoConn: MongoConn{collection, constants.MongoTimeout}}
 }
 
 type MongoObject[T any] struct {
@@ -61,10 +60,10 @@ func (m MongoObject[T]) FindOne(filter bson.D, projection ...bson.D) (*T, error)
 		return nil, err
 	}
 
-	obj := new(T)
-	if err := result.Decode(obj); err != nil {
+	var obj T
+	if err := result.Decode(&obj); err != nil {
 		return nil, err
 	}
 
-	return obj, nil
+	return &obj, nil
 }

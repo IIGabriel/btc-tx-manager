@@ -5,6 +5,5 @@ import (
 )
 
 func Load(app *fiber.App) {
-
 	Transactions(app)
 }
