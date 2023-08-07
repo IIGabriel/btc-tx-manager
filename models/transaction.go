@@ -11,7 +11,7 @@ type Transaction struct {
 	TransactionHash string             `bson:"transaction_hash" json:"transaction_hash"`
 	Time            time.Time          `bson:"time" json:"time"`
 	Fee             int64              `bson:"fee" json:"fee"`
-	Confirmations   *int64             `json:"confirmations" bson:"confirmations"`
+	Confirmations   int64              `json:"confirmations" bson:"confirmations"`
 	BlockHeight     *int64             `json:"block_height" bson:"block_height"`
 	BlockIndex      *int64             `json:"block_index" bson:"block_index"`
 	Inputs          []Inputs           `bson:"inputs" json:"inputs"`

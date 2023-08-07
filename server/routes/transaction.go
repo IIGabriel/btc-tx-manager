@@ -16,4 +16,5 @@ func Transactions(app *fiber.App) {
 	group.Delete(":hashId", controller.Delete)
 	group.Get("", controller.GetMany)
 	group.Put(":hashId", controller.Update)
+	group.Put("/blockchain/:hash", controller.Custom(constants.CustomUpdateByBlockchain))
 }

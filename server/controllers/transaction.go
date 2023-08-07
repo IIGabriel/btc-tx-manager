@@ -74,6 +74,7 @@ func (t transaction) GetOne(ctx *fiber.Ctx) error {
 	return utils.HTTPSuccess(ctx, tx)
 
 }
+
 func (t transaction) Create(ctx *fiber.Ctx) error {
 	hash := ctx.Params("hash")
 	if hash == "" {
@@ -122,7 +123,7 @@ func (t transaction) Update(ctx *fiber.Ctx) error {
 	if len(updateTx.Outputs) > 0 {
 		updateFields["outputs"] = updateTx.Outputs
 	}
-	if updateTx.Confirmations != nil {
+	if updateTx.Confirmations != 0 {
 		updateFields["confirmations"] = updateTx.Confirmations
 	}
 
@@ -151,9 +152,44 @@ func (t transaction) Delete(ctx *fiber.Ctx) error {
 		return utils.HTTPFail(ctx, http.StatusBadRequest, err, "failed to delete transaction")
 	}
 
-	return utils.HTTPSuccess(ctx, "transaction deleted")
+	return ctx.SendStatus(http.StatusOK)
 }
 
 func (t transaction) Custom(route string) func(ctx *fiber.Ctx) error {
+	switch route {
+	case constants.CustomUpdateByBlockchain:
+		return t.UpdateByBlockchain
+	}
 	return nil
+}
+
+func (t transaction) UpdateByBlockchain(ctx *fiber.Ctx) error {
+	hash := ctx.Params("hash")
+	if hash == "" {
+		return utils.HTTPFail(ctx, http.StatusBadRequest, nil, ErrRequired("hash").Error())
+	}
+
+	transactionByHash, err := services.GetTransactionByHash(hash)
+	if err != nil {
+		return utils.HTTPFail(ctx, http.StatusBadRequest, err, "failed to get transaction from blockchain")
+	}
+
+	filter := bson.D{{"transaction_hash", hash}}
+
+	updateFields := bson.M{
+		"time":          transactionByHash.Time,
+		"fee":           transactionByHash.Fee,
+		"inputs":        transactionByHash.Inputs,
+		"outputs":       transactionByHash.Outputs,
+		"confirmations": transactionByHash.Confirmations,
+		"block_height":  transactionByHash.BlockHeight,
+		"block_index":   transactionByHash.BlockIndex,
+	}
+
+	err = t.repoM.Update(filter, bson.D{{"$set", updateFields}})
+	if err != nil {
+		return utils.HTTPFail(ctx, http.StatusInternalServerError, err, "failed to update the transaction in the database using blockchain data")
+	}
+
+	return ctx.SendStatus(http.StatusOK)
 }
