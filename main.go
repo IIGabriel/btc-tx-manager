@@ -13,8 +13,6 @@ func main() {
 
 	utils.InitLogger()
 
-	//utils.Migrate(services.Postgres())
-
 	app := fiber.New()
 	app.Use(cors.New())
 	//routes.Load(app)

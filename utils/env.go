@@ -2,7 +2,6 @@ package utils
 
 import (
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -20,29 +19,6 @@ var defaults = map[constants.EnvKey]interface{}{
 	constants.Port:             "8080",
 	constants.MongoEnvKey:      "",
 	constants.MongoDataBaseKey: "",
-}
-
-func EnvInt(key constants.EnvKey) int64 {
-	valueStr := os.Getenv(string(key))
-	value, err := strconv.ParseInt(valueStr, 10, 64)
-	if valueStr == "" || err != nil {
-		if err != nil && valueStr != "" {
-			zap.L().Panic("failed to convert integer from env", zap.Error(err))
-		}
-
-		valueInterface, ok := defaults[key]
-		if !ok {
-			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", string(key)))
-		}
-
-		valueInt, ok := valueInterface.(int)
-		if !ok {
-			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", string(key)))
-		}
-		value = int64(valueInt)
-	}
-
-	return value
 }
 
 func EnvBool(key constants.EnvKey) bool {
