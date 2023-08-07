@@ -18,9 +18,8 @@ func init() {
 var defaults = map[constants.EnvKey]interface{}{
 	constants.DebugMode:        true,
 	constants.Port:             "8080",
-	constants.MongoEnvKey:      "mongodb://localhost:27017",
-	constants.MongoDataBaseKey: "verbeux",
-	constants.InfuraApiKey:     "41ece36efb6d4a36ba997e43494216fd",
+	constants.MongoEnvKey:      "",
+	constants.MongoDataBaseKey: "",
 }
 
 func EnvInt(key constants.EnvKey) int64 {
