@@ -25,7 +25,11 @@ func GetTransactionByHash(hash string) (*models.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	tx.Confirmations = (*lastBlockHeight - *transaction.BlockHeight) + 1
+	if transaction.BlockHeight != nil {
+		tx.Confirmations = (*lastBlockHeight - *transaction.BlockHeight) + 1
+	} else {
+		tx.Confirmations = 0
+	}
 	return tx, nil
 }
 
