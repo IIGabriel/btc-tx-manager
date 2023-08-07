@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+
 	utils.InitLogger()
 
 	//utils.Migrate(services.Postgres())

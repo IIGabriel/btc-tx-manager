@@ -15,19 +15,16 @@ func init() {
 	_ = godotenv.Load(".env")
 }
 
-var defaults = map[string]interface{}{
-	constants.DebugMode:    true,
-	constants.Port:         "8080",
-	constants.PostgresHost: "5.161.56.166",
-	constants.PostgresDb:   "verbeux",
-	constants.PostgresPort: 5432,
-	constants.PostgresUser: "verbeux",
-	constants.PostgresPass: "r+w12DbCZkDu9ehqBZ83+x2bVGyxlRiA",
-	constants.InfuraApiKey: "41ece36efb6d4a36ba997e43494216fd",
+var defaults = map[constants.EnvKey]interface{}{
+	constants.DebugMode:        true,
+	constants.Port:             "8080",
+	constants.MongoEnvKey:      "mongodb://localhost:27017",
+	constants.MongoDataBaseKey: "verbeux",
+	constants.InfuraApiKey:     "41ece36efb6d4a36ba997e43494216fd",
 }
 
-func EnvInt(key string) int64 {
-	valueStr := os.Getenv(key)
+func EnvInt(key constants.EnvKey) int64 {
+	valueStr := os.Getenv(string(key))
 	value, err := strconv.ParseInt(valueStr, 10, 64)
 	if valueStr == "" || err != nil {
 		if err != nil && valueStr != "" {
@@ -36,12 +33,12 @@ func EnvInt(key string) int64 {
 
 		valueInterface, ok := defaults[key]
 		if !ok {
-			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", key))
+			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", string(key)))
 		}
 
 		valueInt, ok := valueInterface.(int)
 		if !ok {
-			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", key))
+			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", string(key)))
 		}
 		value = int64(valueInt)
 	}
@@ -49,35 +46,35 @@ func EnvInt(key string) int64 {
 	return value
 }
 
-func EnvBool(key string) bool {
-	env := os.Getenv(key)
+func EnvBool(key constants.EnvKey) bool {
+	env := os.Getenv(string(key))
 	value := strings.EqualFold(env, "true")
 	if env == "" {
 		valueBool, ok := defaults[key]
 		if !ok {
-			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", key))
+			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", string(key)))
 		}
 
 		value, ok = valueBool.(bool)
 		if !ok {
-			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", key))
+			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", string(key)))
 		}
 	}
 
 	return value
 }
 
-func EnvString(key string) string {
-	env := os.Getenv(key)
+func EnvString(key constants.EnvKey) string {
+	env := os.Getenv(string(key))
 	if env == "" {
 		valueInterface, ok := defaults[key]
 		if !ok {
-			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", key))
+			zap.L().Fatal("missing env", zap.Error(ErrMissingEnv), zap.String("env", string(key)))
 		}
 
 		env, ok = valueInterface.(string)
 		if !ok {
-			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", key))
+			zap.L().Fatal("wrong type", zap.Error(ErrEnvType), zap.String("env", string(key)))
 		}
 
 	}
