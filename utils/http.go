@@ -2,9 +2,11 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -73,4 +75,25 @@ func HTTPFail(ctx *fiber.Ctx, code int, err error, message string) error {
 	}
 
 	return ctx.Status(code).JSON(result)
+}
+
+func FilterRangeDate(ctx *fiber.Ctx) (start time.Time, end time.Time, err error) {
+	startDate := ctx.Query(constants.QueryInitialDate)
+	endDate := ctx.Query(constants.QueryFinalDate)
+	if startDate != "" {
+		start, err = time.Parse(time.RFC3339, startDate)
+		if err != nil {
+			return time.Time{}, time.Time{}, HTTPFail(ctx, http.StatusBadRequest, err, fmt.Sprintf("invalid %s format", constants.QueryInitialDate))
+		}
+	}
+
+	if endDate != "" {
+		end, err = time.Parse(time.RFC3339, endDate)
+		if err != nil {
+			return time.Time{}, time.Time{}, HTTPFail(ctx, http.StatusBadRequest, err, fmt.Sprintf("invalid %s format", constants.QueryFinalDate))
+		}
+	}
+
+	return start, end, nil
+
 }

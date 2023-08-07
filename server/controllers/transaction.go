@@ -24,27 +24,41 @@ type transaction struct {
 }
 
 func (t transaction) GetMany(ctx *fiber.Ctx) error {
-	var pagination interfaces.Pagination
-	var sort interfaces.Sort
-
-	if err := ctx.QueryParser(&pagination); err != nil {
-		return utils.HTTPFail(ctx, http.StatusBadRequest, err, "failed to parse params")
+	var mongoFilter interfaces.MongoFilter
+	if err := ctx.QueryParser(&mongoFilter); err != nil {
+		return err
 	}
-	if err := ctx.QueryParser(&sort); err != nil {
-		return utils.HTTPFail(ctx, http.StatusBadRequest, err, "failed to parse params")
+	filter := bson.D{}
+
+	start, end, err := utils.FilterRangeDate(ctx)
+	if err != nil {
+		return err
+	}
+	if !start.IsZero() && !end.IsZero() {
+		filter = append(filter, bson.E{Key: "time", Value: bson.M{"$gte": start, "$lte": end}})
+	}
+	var filters = map[string]string{
+		"inputs.address":  ctx.Query("input_address"),
+		"outputs.address": ctx.Query("output_address"),
 	}
 
-	transactions, err := t.repoM.Find(bson.D{}, interfaces.MongoFilter{Pagination: pagination, Sort: sort})
+	for key, value := range filters {
+		if value != "" {
+			filter = append(filter, bson.E{Key: key, Value: value})
+		}
+	}
+
+	transactions, err := t.repoM.Find(filter, mongoFilter)
 	if err != nil {
 		return utils.HTTPFail(ctx, http.StatusInternalServerError, err, "failed to get transactions from db")
 	}
 
-	count, err := t.repoM.Count(bson.D{})
+	count, err := t.repoM.Count(filter)
 	if err != nil {
 		return utils.HTTPFail(ctx, http.StatusInternalServerError, err, "failed to count transactions")
 	}
 
-	return utils.HTTPSuccess(ctx, transactions, uint64(pagination.Page), uint64(pagination.PerPage), uint64(count))
+	return utils.HTTPSuccess(ctx, transactions, uint64(mongoFilter.Page), uint64(mongoFilter.PerPage), uint64(count))
 }
 
 func (t transaction) GetOne(ctx *fiber.Ctx) error {
@@ -99,7 +113,6 @@ func (t transaction) Update(ctx *fiber.Ctx) error {
 	filter := bson.D{{"transaction_hash", hashId}}
 	updateFields := bson.M{}
 
-	// Check each field individually
 	if !updateTx.Time.IsZero() {
 		updateFields["time"] = updateTx.Time
 	}
