@@ -74,6 +74,11 @@ func (m MongoObject[T]) Find(filter bson.D, mongoParams interfaces.MongoFilter) 
 	opts.SetSkip(int64((mongoParams.Page - 1) * mongoParams.PerPage))
 	opts.SetLimit(int64(mongoParams.PerPage))
 	opts.SetProjection(mongoParams.Projection)
+	asc := -1
+	if mongoParams.Asc {
+		asc = 1
+	}
+	opts.SetSort(bson.M{mongoParams.SortField: asc})
 
 	cursor, err := m.db.Find(ctx, filter, opts)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/IIGabriel/btc-tx-manager/constants"
 	"github.com/IIGabriel/btc-tx-manager/models"
@@ -96,4 +97,13 @@ func FilterRangeDate(ctx *fiber.Ctx) (start time.Time, end time.Time, err error)
 
 	return start, end, nil
 
+}
+
+func QueryFiltersString(filter bson.D, queryArguments map[string]string) bson.D {
+	for key, value := range queryArguments {
+		if value != "" {
+			filter = append(filter, bson.E{Key: key, Value: value})
+		}
+	}
+	return filter
 }

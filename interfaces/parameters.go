@@ -7,10 +7,10 @@ type MongoFilter struct {
 }
 
 type Pagination struct {
-	PerPage int `json:"perPage"`
+	PerPage int `json:"per_page"`
 	Page    int `json:"page"`
 }
 type Sort struct {
-	Field string `json:"field"`
-	Asc   bool   `json:"asc"`
+	SortField string `json:"sort_field"`
+	Asc       bool   `json:"asc"`
 }

@@ -4,7 +4,7 @@ import "encoding/json"
 
 type HTTPResponse struct {
 	Data    any    `json:"data"`
-	PerPage uint64 `json:"perPage,omitempty"`
+	PerPage uint64 `json:"per_page,omitempty"`
 	Page    uint64 `json:"page,omitempty"`
 	Total   uint64 `json:"total,omitempty"`
 }

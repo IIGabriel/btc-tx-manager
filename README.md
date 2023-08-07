@@ -8,16 +8,24 @@ This service provides CRUD functionalities for Bitcoin blockchain transactions. 
 
 - **Create**: Add a new transaction to the database by 'blockchain.com' API.
 - **Read**: Retrieve one or multiple transactions based on filtering criteria.
-- **Update**: Update specific details of a transaction.
+- **Update**: Update specific details of a transaction. Fields that can be updated include:
+    - `time (RFC3339)` 
+    - `fee`
+    - `inputs`
+    - `outputs`
+    - `confirmations`
 - **Delete**: Remove a transaction.
 
 ## Endpoints
 
-- **POST** `/transactions/:hashId`: Add a new transaction.
+- **POST** `/transactions/:hash_or_id`: Add a new transaction.
 - **GET** `/transactions`: Retrieve a list of transactions. Supports filtering by date range, input address, and output address.
-- **GET** `/transactions/:hashId`: Retrieve details of a specific transaction using its hash.
-- **PUT** `/transactions/:hashId`: Update details of a specific transaction.
-- **DELETE** `/transactions/:hashId`: Delete a transaction.
+  - Filtering by date range, input address, and output address.
+  - Sorting by passing a `sort_field` and optionally an `asc` parameter (set to `true` for ascending order).
+  - Pagination using the `page` and `perPage` parameters.
+- **GET** `/transactions/:hash_or_id`: Retrieve details of a specific transaction using its hash.
+- **PUT** `/transactions/:hash_or_id`: Update details of a specific transaction.
+- **DELETE** `/transactions/:hash_or_id`: Delete a transaction.
 
 ## Supported Filters
 

@@ -41,13 +41,7 @@ func (t transaction) GetMany(ctx *fiber.Ctx) error {
 		"inputs.address":  ctx.Query("input_address"),
 		"outputs.address": ctx.Query("output_address"),
 	}
-
-	for key, value := range filters {
-		if value != "" {
-			filter = append(filter, bson.E{Key: key, Value: value})
-		}
-	}
-
+	filter = utils.QueryFiltersString(filter, filters)
 	transactions, err := t.repoM.Find(filter, mongoFilter)
 	if err != nil {
 		return utils.HTTPFail(ctx, http.StatusInternalServerError, err, "failed to get transactions from db")
@@ -111,6 +105,9 @@ func (t transaction) Update(ctx *fiber.Ctx) error {
 	}
 
 	filter := bson.D{{"transaction_hash", hashId}}
+	if pId, err := primitive.ObjectIDFromHex(hashId); err == nil {
+		filter = bson.D{{"_id", pId}}
+	}
 	updateFields := bson.M{}
 
 	if !updateTx.Time.IsZero() {
@@ -124,6 +121,9 @@ func (t transaction) Update(ctx *fiber.Ctx) error {
 	}
 	if len(updateTx.Outputs) > 0 {
 		updateFields["outputs"] = updateTx.Outputs
+	}
+	if updateTx.Confirmations != nil {
+		updateFields["confirmations"] = updateTx.Confirmations
 	}
 
 	if len(updateFields) == 0 {
