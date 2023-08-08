@@ -1,6 +1,6 @@
 package constants
 
 const (
-	RouteTransaction         = "/transaction"
+	RouteTransaction         = "/transactions"
 	CustomUpdateByBlockchain = "blockchain"
 )
