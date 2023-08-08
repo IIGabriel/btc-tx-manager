@@ -29,3 +29,13 @@ type Outputs struct {
 	Address string `bson:"address" json:"address"`
 	Value   int64  `bson:"value" json:"value"`
 }
+
+type TransactionToUpdate struct {
+	Time          time.Time `json:"time"`
+	Fee           int64     `json:"fee"`
+	Confirmations int64     `json:"confirmations"`
+	BlockHeight   *int64    `json:"block_height"`
+	BlockIndex    *int64    `json:"block_index"`
+	Inputs        []Inputs  `json:"inputs"`
+	Outputs       []Outputs `json:"outputs"`
+}

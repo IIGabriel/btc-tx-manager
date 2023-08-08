@@ -23,6 +23,20 @@ type transaction struct {
 	repoM interfaces.RepositoryMongo[*models.Transaction]
 }
 
+// @Summary Retrieve multiple transactions
+// @Description Retrieve transactions with optional filters.
+// @Accept  json
+// @Produce  json
+// @Param start_date query string false "Start Date"
+// @Param end_date query string false "End Date"
+// @Param input_address query string false "Input Address"
+// @Param output_address query string false "Output Address"
+// @Param sort_field query string false "Field for sorting results"
+// @Param asc query boolean false "Sort in ascending order"
+// @Param page query int false "Page number for pagination"
+// @Param perPage query int false "Number of results per page"
+// @Success 200 {object} models.Transaction
+// @Router /transactions [get]
 func (t transaction) GetMany(ctx *fiber.Ctx) error {
 	var mongoFilter interfaces.MongoFilter
 	if err := ctx.QueryParser(&mongoFilter); err != nil {
@@ -55,6 +69,13 @@ func (t transaction) GetMany(ctx *fiber.Ctx) error {
 	return utils.HTTPSuccess(ctx, transactions, uint64(mongoFilter.Page), uint64(mongoFilter.PerPage), uint64(count))
 }
 
+// @Summary Retrieve a single transaction
+// @Description Retrieve a specific transaction by hash or id.
+// @Accept  json
+// @Produce  json
+// @Param hashId path string true "Transaction Hash or ID"
+// @Success 200 {object} models.Transaction
+// @Router /transactions/{hashId} [get]
 func (t transaction) GetOne(ctx *fiber.Ctx) error {
 	hashId := ctx.Params("hashId")
 	if hashId == "" {
@@ -75,6 +96,13 @@ func (t transaction) GetOne(ctx *fiber.Ctx) error {
 
 }
 
+// @Summary Add a new transaction
+// @Description Create a new transaction based on provided hash.
+// @Accept  json
+// @Produce  json
+// @Param hash path string true "Transaction Hash"
+// @Success 201 {object} models.Transaction
+// @Router /transactions/{hash} [post]
 func (t transaction) Create(ctx *fiber.Ctx) error {
 	hash := ctx.Params("hash")
 	if hash == "" {
@@ -94,13 +122,21 @@ func (t transaction) Create(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusCreated).JSON(transactionByHash)
 }
 
+// @Summary Update a transaction
+// @Description Update specific fields of a transaction.
+// @Accept  json
+// @Produce  json
+// @Param hashId path string true "Transaction Hash or ID"
+// @Param transaction body models.TransactionToUpdate true "Transaction object"
+// @Success 200 {object} models.TransactionToUpdate
+// @Router /transactions/{hashId} [put]
 func (t transaction) Update(ctx *fiber.Ctx) error {
 	hashId := ctx.Params("hashId")
 	if hashId == "" {
 		return utils.HTTPFail(ctx, http.StatusBadRequest, nil, ErrRequired("hash").Error())
 	}
 
-	var updateTx models.Transaction
+	var updateTx models.TransactionToUpdate
 	if err := ctx.BodyParser(&updateTx); err != nil {
 		return utils.HTTPFail(ctx, http.StatusBadRequest, err, "failed to parse request body")
 	}
@@ -111,20 +147,23 @@ func (t transaction) Update(ctx *fiber.Ctx) error {
 	}
 	updateFields := bson.M{}
 
-	if !updateTx.Time.IsZero() {
-		updateFields["time"] = updateTx.Time
+	mapFieldsValue := map[string]struct {
+		fieldValue any
+		isNotEmpty bool
+	}{
+		"time":          {updateTx.Time, !updateTx.Time.IsZero()},
+		"fee":           {updateTx.Fee, updateTx.Fee != 0},
+		"inputs":        {updateTx.Inputs, len(updateTx.Inputs) != 0},
+		"outputs":       {updateTx.Outputs, len(updateTx.Outputs) != 0},
+		"confirmations": {updateTx.Confirmations, updateTx.Confirmations != 0},
+		"block_height":  {updateTx.BlockHeight, updateTx.Confirmations != 0},
+		"block_index":   {updateTx.BlockIndex, updateTx.Confirmations != 0},
 	}
-	if updateTx.Fee != 0 {
-		updateFields["fee"] = updateTx.Fee
-	}
-	if len(updateTx.Inputs) > 0 {
-		updateFields["inputs"] = updateTx.Inputs
-	}
-	if len(updateTx.Outputs) > 0 {
-		updateFields["outputs"] = updateTx.Outputs
-	}
-	if updateTx.Confirmations != 0 {
-		updateFields["confirmations"] = updateTx.Confirmations
+
+	for key, value := range mapFieldsValue {
+		if value.isNotEmpty {
+			updateFields[key] = value.fieldValue
+		}
 	}
 
 	if len(updateFields) == 0 {
@@ -139,6 +178,13 @@ func (t transaction) Update(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(http.StatusOK)
 }
 
+// @Summary Delete a transaction
+// @Description Remove a transaction based on provided hash or id.
+// @Accept  json
+// @Produce  json
+// @Param hashId path string true "Transaction Hash or ID"
+// @Success 200 {string} string "transaction deleted"
+// @Router /transactions/{hashId} [delete]
 func (t transaction) Delete(ctx *fiber.Ctx) error {
 	hashId := ctx.Params("hashId")
 	if hashId == "" {
@@ -163,6 +209,13 @@ func (t transaction) Custom(route string) func(ctx *fiber.Ctx) error {
 	return nil
 }
 
+// @Summary Update a transaction using blockchain data
+// @Description Fetch data from the blockchain and update specific fields of a transaction.
+// @Accept  json
+// @Produce  json
+// @Param hash path string true "Transaction Hash"
+// @Success 200
+// @Router /transactions/blockchain/{hash} [put]
 func (t transaction) UpdateByBlockchain(ctx *fiber.Ctx) error {
 	hash := ctx.Params("hash")
 	if hash == "" {

@@ -41,3 +41,7 @@ The Blockchain.com API was used to fetch the data
 2. Set up the MongoDB database running `docker compose up`
 3. Update the credentials in the envirolment file.
 4. Run the service using `go run main.go`.
+
+## Swagger
+After run, access:`http://localhost:8080/swagger/index.html#/`
+to see swagger documentation.

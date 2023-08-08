@@ -1,0 +1,218 @@
+basePath: /
+definitions:
+  models.Inputs:
+    properties:
+      address:
+        type: string
+      index:
+        type: integer
+      previous_txid:
+        type: integer
+      value:
+        type: integer
+    type: object
+  models.Outputs:
+    properties:
+      address:
+        type: string
+      value:
+        type: integer
+    type: object
+  models.Transaction:
+    properties:
+      block_height:
+        type: integer
+      block_index:
+        type: integer
+      confirmations:
+        type: integer
+      fee:
+        type: integer
+      id:
+        type: string
+      inputs:
+        items:
+          $ref: '#/definitions/models.Inputs'
+        type: array
+      outputs:
+        items:
+          $ref: '#/definitions/models.Outputs'
+        type: array
+      time:
+        type: string
+      transaction_hash:
+        type: string
+    type: object
+  models.TransactionToUpdate:
+    properties:
+      block_height:
+        type: integer
+      block_index:
+        type: integer
+      confirmations:
+        type: integer
+      fee:
+        type: integer
+      inputs:
+        items:
+          $ref: '#/definitions/models.Inputs'
+        type: array
+      outputs:
+        items:
+          $ref: '#/definitions/models.Outputs'
+        type: array
+      time:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for managing Bitcoin transactions.
+  title: BTC Transaction Manager
+  version: "1.0"
+paths:
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve transactions with optional filters.
+      parameters:
+      - description: Start Date
+        in: query
+        name: start_date
+        type: string
+      - description: End Date
+        in: query
+        name: end_date
+        type: string
+      - description: Input Address
+        in: query
+        name: input_address
+        type: string
+      - description: Output Address
+        in: query
+        name: output_address
+        type: string
+      - description: Field for sorting results
+        in: query
+        name: sort_field
+        type: string
+      - description: Sort in ascending order
+        in: query
+        name: asc
+        type: boolean
+      - description: Page number for pagination
+        in: query
+        name: page
+        type: integer
+      - description: Number of results per page
+        in: query
+        name: perPage
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Transaction'
+      summary: Retrieve multiple transactions
+  /transactions/{hash}:
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction based on provided hash.
+      parameters:
+      - description: Transaction Hash
+        in: path
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Transaction'
+      summary: Add a new transaction
+  /transactions/{hashId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a transaction based on provided hash or id.
+      parameters:
+      - description: Transaction Hash or ID
+        in: path
+        name: hashId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: transaction deleted
+          schema:
+            type: string
+      summary: Delete a transaction
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific transaction by hash or id.
+      parameters:
+      - description: Transaction Hash or ID
+        in: path
+        name: hashId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Transaction'
+      summary: Retrieve a single transaction
+    put:
+      consumes:
+      - application/json
+      description: Update specific fields of a transaction.
+      parameters:
+      - description: Transaction Hash or ID
+        in: path
+        name: hashId
+        required: true
+        type: string
+      - description: Transaction object
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/models.TransactionToUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TransactionToUpdate'
+      summary: Update a transaction
+  /transactions/blockchain/{hash}:
+    put:
+      consumes:
+      - application/json
+      description: Fetch data from the blockchain and update specific fields of a
+        transaction.
+      parameters:
+      - description: Transaction Hash
+        in: path
+        name: hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update a transaction using blockchain data
+swagger: "2.0"
